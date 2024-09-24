@@ -19,13 +19,14 @@ class Authorization {
   final ClientCredentials _clientCredentials;
   final Platform _platform;
   final http.BaseClient _httpClient;
+  final String? _userAgent;
 
   /// A constructor of Authorization.
   ///
   /// If you want to use in web browser, pass http.BrowserClient object for httpClient.
   /// https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/http/http-browser_client.BrowserClient
   Authorization(this._clientCredentials, this._platform,
-      [http.BaseClient? httpClient])
+      [http.BaseClient? httpClient, this._userAgent])
       : _httpClient = httpClient ?? http.Client() as http.BaseClient;
 
   /// Obtain a set of temporary credentials from the server.
@@ -45,9 +46,16 @@ class Authorization {
     ahb.url = _platform.temporaryCredentialsRequestURI;
     ahb.additionalParameters = additionalParams;
 
+    final Map<String, String> headers = <String, String>{
+      'Authorization': ahb.build().toString()
+    };
+    if (_userAgent != null) {
+      headers['User-Agent'] = _userAgent!;
+    }
+
     final http.Response res = await _httpClient.post(
         Uri.parse(_platform.temporaryCredentialsRequestURI),
-        headers: <String, String>{'Authorization': ahb.build().toString()});
+        headers: headers);
 
     if (res.statusCode != 200) {
       throw StateError(res.body);
@@ -86,9 +94,16 @@ class Authorization {
     ahb.url = _platform.tokenCredentialsRequestURI;
     ahb.additionalParameters = additionalParams;
 
+    final Map<String, String> headers = <String, String>{
+      'Authorization': ahb.build().toString()
+    };
+    if (_userAgent != null) {
+      headers['User-Agent'] = _userAgent!;
+    }
+
     final http.Response res = await _httpClient.post(
         Uri.parse(_platform.tokenCredentialsRequestURI),
-        headers: <String, String>{'Authorization': ahb.build().toString()});
+        headers: headers);
 
     if (res.statusCode != 200) {
       throw StateError(res.body);
